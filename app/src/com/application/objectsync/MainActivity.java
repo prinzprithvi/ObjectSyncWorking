@@ -26,21 +26,32 @@
  */
 package com.application.objectsync;
 
+import android.accounts.Account;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.application.objectsync.rest_service.ConstantsSync;
+import com.application.objectsync.rest_service.IResposeObject;
+import com.application.objectsync.rest_service.ServerUtils;
+import com.application.objectsync.soup_operations.SoupOperations;
+import com.salesforce.androidsdk.accounts.UserAccount;
 import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.rest.ApiVersionStrings;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.salesforce.androidsdk.rest.RestClient.AsyncRequestCallback;
 import com.salesforce.androidsdk.rest.RestRequest;
 import com.salesforce.androidsdk.rest.RestResponse;
+
+import com.salesforce.androidsdk.smartstore.store.SmartStore;
+import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
 import com.salesforce.androidsdk.ui.SalesforceActivity;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -52,7 +63,10 @@ public class MainActivity extends SalesforceActivity {
 
     private RestClient client;
     private ArrayAdapter<String> listAdapter;
-	
+	private ServerUtils makeReqObj;
+	SmartStore smartStore;
+	private SoupOperations soupOperations;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -77,10 +91,14 @@ public class MainActivity extends SalesforceActivity {
 	@Override
 	public void onResume(RestClient client) {
         // Keeping reference to rest client
+
+		smartStore = SmartSyncSDKManager.getInstance().getSmartStore();
+		soupOperations=new SoupOperations();
         this.client = client; 
 
 		// Show everything
 		findViewById(R.id.root).setVisibility(View.VISIBLE);
+		makeReqObj=new ServerUtils();
 		callCustomApi();
 
 	}
@@ -162,36 +180,36 @@ public class MainActivity extends SalesforceActivity {
 
 
 	private void callCustomApi(){
-
-		client.sendAsync(new RestRequest(RestRequest.RestMethod.GET,"/services/apexrest/GetConfigurationMobile",null), new AsyncRequestCallback() {
-			@Override
-			public void onSuccess(RestRequest request, final RestResponse result) {
-				result.consumeQuietly(); // consume before going back to main thread
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						try {
-
-							JSONArray records = result.asJSONObject().getJSONArray("settings");
-
-						} catch (Exception e) {
-							onError(e);
-						}
-					}
-				});
-			}
-
-			@Override
-			public void onError(final Exception exception) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Toast.makeText(MainActivity.this,
-								MainActivity.this.getString(SalesforceSDKManager.getInstance().getSalesforceR().stringGenericError(), exception.toString()),
-								Toast.LENGTH_LONG).show();
-					}
-				});
-			}
-		});
+		RestRequest mobileConfObj=new RestRequest(RestRequest.RestMethod.GET,ConstantsSync.MOBILE_CONFIGURATION_URL,null);
+		makeReqObj.fetchData(MainActivity.this,client,mobileConfObj,response,"CONFIG");
 	}
+
+
+	IResposeObject response=new IResposeObject() {
+		@Override
+		public void Response(JSONObject resp,String type) {
+			if(type.equalsIgnoreCase("CONFIG"))
+			{
+				try{
+					//[{"objectNames":"Contact","fieldValues":"LastName,Account,MobilePhone"}]
+					JSONArray configArray = resp.getJSONArray("settings");
+					for(int i=0;i<configArray.length();i++)
+					{
+						JSONObject soupObject=configArray.getJSONObject(i);
+						String soupName=soupObject.getString("objectNames");
+						String[] soupFields=soupObject.getString("fieldValues").split(",");
+						soupOperations.registerConfigSoup(MainActivity.this,soupName,soupObject.getString("fieldValues"));
+						soupOperations.registerSoup(soupName,soupFields,smartStore);
+					}
+					Log.v("--->",configArray.toString());
+				}catch (Exception e)
+				{
+					Log.v("Error",e.getMessage());
+				}
+			}
+
+		}
+	};
+
+
 }

@@ -1,4 +1,4 @@
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 dependencies {
   compile project(':libs:SmartSync') // From node_modules
@@ -10,7 +10,10 @@ android {
   
   buildTypes {
       debug {
-         testCoverageEnabled = true
+         testCoverageEnabled = false
+         //minifyEnabled = true
+         //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
       }
    }
 
