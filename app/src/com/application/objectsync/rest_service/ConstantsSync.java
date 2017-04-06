@@ -8,4 +8,5 @@ public class ConstantsSync {
 
 
     public static final String MOBILE_CONFIGURATION_URL="/services/apexrest/GetConfigurationMobile";
+    public static final String PASS_DETAIL_INTENT_KEY="object_type";
 }

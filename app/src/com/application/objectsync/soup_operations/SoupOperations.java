@@ -7,9 +7,14 @@ import android.util.Log;
 
 import com.salesforce.androidsdk.accounts.UserAccount;
 import com.salesforce.androidsdk.smartstore.store.IndexSpec;
+import com.salesforce.androidsdk.smartstore.store.QuerySpec;
+import com.salesforce.androidsdk.smartstore.store.SmartSqlHelper;
 import com.salesforce.androidsdk.smartstore.store.SmartStore;
 import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
 import com.salesforce.androidsdk.smartsync.manager.SyncManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +26,7 @@ import java.util.List;
 public class SoupOperations {
 
 
-
+    private static String TAG="SoupOperations";
     public void registerSoup(String soupName,String[] fields,SmartStore smartStore)
     {
 
@@ -36,7 +41,7 @@ public class SoupOperations {
             indexSpecList.add(new IndexSpec(field, SmartStore.Type.string));
         }
         smartStore.registerSoup(soupName, indexSpecList.toArray(new IndexSpec[indexSpecList.size()]));
-        Log.v("SOUP","registered successfully!");
+        Log.v(TAG,"registered successfully!");
     }
 
 
@@ -47,4 +52,7 @@ public class SoupOperations {
         editor.putString(soupName,fields);
         editor.commit();
     }
+
+
+
 }

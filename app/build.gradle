@@ -1,38 +1,39 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-  compile project(':libs:SmartSync') // From node_modules
+    compile project(':libs:SmartSync') // From node_modules
+    compile 'com.android.support:appcompat-v7:25.0.1'
 }
 
 android {
-  compileSdkVersion 25
-  buildToolsVersion '23.0.1'
-  
-  buildTypes {
-      debug {
-         testCoverageEnabled = false
-         //minifyEnabled = true
-         //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    compileSdkVersion 25
+    buildToolsVersion '23.0.1'
 
-      }
-   }
+    buildTypes {
+        debug {
+            testCoverageEnabled = false
+            //minifyEnabled = true
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
-  sourceSets {
-
-    main {
-      manifest.srcFile 'AndroidManifest.xml'
-      java.srcDirs = ['src']
-      resources.srcDirs = ['src']
-      aidl.srcDirs = ['src']
-      renderscript.srcDirs = ['src']
-      res.srcDirs = ['res']
-      assets.srcDirs = ['assets']
+        }
     }
-  }
-  packagingOptions {
-    exclude 'META-INF/LICENSE'
-    exclude 'META-INF/LICENSE.txt'
-    exclude 'META-INF/DEPENDENCIES'
-    exclude 'META-INF/NOTICE'
-  }
+
+    sourceSets {
+
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            resources.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+    }
 }

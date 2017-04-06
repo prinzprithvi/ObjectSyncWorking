@@ -27,13 +27,21 @@
 package com.application.objectsync;
 
 import android.accounts.Account;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.application.objectsync.activities.ActivityDetail;
 import com.application.objectsync.rest_service.ConstantsSync;
 import com.application.objectsync.rest_service.IResposeObject;
 import com.application.objectsync.rest_service.ServerUtils;
@@ -47,7 +55,10 @@ import com.salesforce.androidsdk.rest.RestRequest;
 import com.salesforce.androidsdk.rest.RestResponse;
 
 import com.salesforce.androidsdk.smartstore.store.SmartStore;
+import com.salesforce.androidsdk.smartstore.ui.SmartStoreInspectorActivity;
 import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
+import com.salesforce.androidsdk.smartsync.manager.SyncManager;
+import com.salesforce.androidsdk.smartsync.util.Constants;
 import com.salesforce.androidsdk.ui.SalesforceActivity;
 
 import org.json.JSONArray;
@@ -55,6 +66,7 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main activity
@@ -66,6 +78,12 @@ public class MainActivity extends SalesforceActivity {
 	private ServerUtils makeReqObj;
 	SmartStore smartStore;
 	private SoupOperations soupOperations;
+	private SyncManager syncMgr;
+	private ListView objects;
+	private LogoutDialogFragment logoutConfirmationDialog;
+	List<String> allSoups;
+
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +100,16 @@ public class MainActivity extends SalesforceActivity {
 
 		// Create list adapter
 		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
-		((ListView) findViewById(R.id.contacts_list)).setAdapter(listAdapter);
-
+		objects=(ListView) findViewById(R.id.contacts_list);
+		objects.setAdapter(listAdapter);
+		objects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+				Intent detailIntent=new Intent(MainActivity.this,ActivityDetail.class);
+				detailIntent.putExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY,allSoups.get(i));
+				startActivity(detailIntent);
+			}
+		});
 
 		super.onResume();
 	}		
@@ -91,8 +117,9 @@ public class MainActivity extends SalesforceActivity {
 	@Override
 	public void onResume(RestClient client) {
         // Keeping reference to rest client
-
+		logoutConfirmationDialog = new LogoutDialogFragment();
 		smartStore = SmartSyncSDKManager.getInstance().getSmartStore();
+		syncMgr = SyncManager.getInstance();
 		soupOperations=new SoupOperations();
         this.client = client; 
 
@@ -112,36 +139,48 @@ public class MainActivity extends SalesforceActivity {
 		SalesforceSDKManager.getInstance().logout(this);
 	}
 	
-	/**
-	 * Called when "Clear" button is clicked. 
-	 * 
-	 * @param v
-	 */
-	public void onClearClick(View v) {
-		listAdapter.clear();
-	}	
 
-	/**
-	 * Called when "Fetch Contacts" button is clicked
-	 * 
-	 * @param v
-	 * @throws UnsupportedEncodingException 
-	 */
-	public void onFetchContactsClick(View v) throws UnsupportedEncodingException {
-        sendRequest("SELECT Name FROM Contact");
+
+//menu items
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+	final MenuInflater inflater = getMenuInflater();
+	inflater.inflate(R.menu.main_activity, menu);
+
+	return super.onCreateOptionsMenu(menu);
+}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+
+			case R.id.action_logout:
+				logoutConfirmationDialog.show(getFragmentManager(), "LogoutDialog");
+				return true;
+			case R.id.action_switch_user:
+				launchAccountSwitcherActivity();
+				return true;
+			case R.id.action_inspect_db:
+				launchSmartStoreInspectorActivity();
+				return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 	}
 
-	/**
-	 * Called when "Fetch Accounts" button is clicked
-	 * 
-	 * @param v
-	 * @throws UnsupportedEncodingException 
-	 */
-	public void onFetchAccountsClick(View v) throws UnsupportedEncodingException {
-		sendRequest("SELECT Name FROM Account");
-	}	
+	private void launchAccountSwitcherActivity() {
+		final Intent i = new Intent(this, SalesforceSDKManager.getInstance().getAccountSwitcherActivityClass());
+		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		this.startActivity(i);
+	}
+
+
+	private void launchSmartStoreInspectorActivity() {
+		this.startActivity(SmartStoreInspectorActivity.getIntent(this, false, null));
+	}
 	
-	private void sendRequest(String soql) throws UnsupportedEncodingException {
+	/*private void sendRequest(String soql) throws UnsupportedEncodingException {
 		RestRequest restRequest = RestRequest.getRequestForQuery(ApiVersionStrings.getVersionNumber(this), soql);
 
 		client.sendAsync(restRequest, new AsyncRequestCallback() {
@@ -176,7 +215,7 @@ public class MainActivity extends SalesforceActivity {
 				});
 			}
 		});
-	}
+	}*/
 
 
 	private void callCustomApi(){
@@ -192,15 +231,21 @@ public class MainActivity extends SalesforceActivity {
 			{
 				try{
 					//[{"objectNames":"Contact","fieldValues":"LastName,Account,MobilePhone"}]
+					allSoups=new ArrayList<String>();
 					JSONArray configArray = resp.getJSONArray("settings");
 					for(int i=0;i<configArray.length();i++)
 					{
 						JSONObject soupObject=configArray.getJSONObject(i);
 						String soupName=soupObject.getString("objectNames");
+						allSoups.add(soupName);
 						String[] soupFields=soupObject.getString("fieldValues").split(",");
 						soupOperations.registerConfigSoup(MainActivity.this,soupName,soupObject.getString("fieldValues"));
 						soupOperations.registerSoup(soupName,soupFields,smartStore);
 					}
+					//add data to listView
+					listAdapter.addAll(allSoups);
+					//makeReqObj.syncDown(MainActivity.this,syncMgr);
+
 					Log.v("--->",configArray.toString());
 				}catch (Exception e)
 				{
