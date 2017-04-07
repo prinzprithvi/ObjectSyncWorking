@@ -71,7 +71,7 @@ public class ServerUtils {
     }
 
 
-    public synchronized void syncDown(Activity context,SyncManager syncMgr) {
+    /*public synchronized void syncDown(Activity context,SyncManager syncMgr) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         Map<String, ?> allEntries = settings.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -112,5 +112,5 @@ public class ServerUtils {
 
 
 
-    }
+    }*/
 }

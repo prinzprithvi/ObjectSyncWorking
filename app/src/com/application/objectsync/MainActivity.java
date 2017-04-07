@@ -36,6 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -82,6 +83,7 @@ public class MainActivity extends SalesforceActivity {
 	private ListView objects;
 	private LogoutDialogFragment logoutConfirmationDialog;
 	List<String> allSoups;
+
 
 
 
@@ -223,6 +225,10 @@ public boolean onCreateOptionsMenu(Menu menu) {
 		makeReqObj.fetchData(MainActivity.this,client,mobileConfObj,response,"CONFIG");
 	}
 
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
 
 	IResposeObject response=new IResposeObject() {
 		@Override
