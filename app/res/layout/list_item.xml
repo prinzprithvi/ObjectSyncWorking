@@ -23,13 +23,13 @@
             android:orientation="vertical"
             android:layout_margin="6dp">
 
-                <TextView android:id="@+id/obj_name"
+                <!--<TextView android:id="@+id/obj_name"
                     android:layout_height="wrap_content"
                     android:layout_width="230dp"
                     android:textSize="14sp"
                     android:textColor="@android:color/black"
                     android:singleLine="true"
-                    android:ellipsize="end" />
+                    android:ellipsize="end" />-->
 
 
         </LinearLayout>
@@ -40,5 +40,5 @@
             android:layout_height="42dp"
             android:layout_margin="4dp"
             android:src="@drawable/sync_success"
-            android:layout_marginRight="10dp"/>
+            />
 </RelativeLayout>

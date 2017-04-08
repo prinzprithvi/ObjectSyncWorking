@@ -14,4 +14,8 @@
     <string name="yes">Yes</string>
     <string name="cancel">No</string>
     <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="action_search">Search</string>
+    <string name="action_refresh">Synchronize</string>
+    <string name="action_add">Add</string>
 </resources>

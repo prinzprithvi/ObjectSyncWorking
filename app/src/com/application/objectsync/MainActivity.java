@@ -148,7 +148,12 @@ public class MainActivity extends SalesforceActivity {
 public boolean onCreateOptionsMenu(Menu menu) {
 	final MenuInflater inflater = getMenuInflater();
 	inflater.inflate(R.menu.main_activity, menu);
-
+	final MenuItem searchItem = menu.findItem(R.id.action_search);
+	searchItem.setVisible(false);
+	final MenuItem refreshItem = menu.findItem(R.id.action_refresh);
+	refreshItem.setVisible(false);
+	final MenuItem addItem = menu.findItem(R.id.action_add);
+	addItem.setVisible(false);
 	return super.onCreateOptionsMenu(menu);
 }
 

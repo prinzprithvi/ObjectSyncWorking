@@ -8,12 +8,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -22,6 +28,9 @@ import android.widget.TextView;
 import com.application.objectsync.R;
 import com.application.objectsync.rest_service.ConstantsSync;
 import com.application.objectsync.soup_operations.GenericLoader;
+import com.salesforce.androidsdk.rest.RestClient;
+import com.salesforce.androidsdk.smartsync.manager.SyncManager;
+import com.salesforce.androidsdk.ui.SalesforceActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,8 +42,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ActivityDetail extends Activity implements LoaderManager.LoaderCallbacks<List<JSONObject>>  {
+public class ActivityDetail extends SalesforceActivity implements LoaderManager.LoaderCallbacks<List<JSONObject>>  {
 
+    public static final String PASS_OBJECT_KEY="s_object";
     SharedPreferences settings;
     String curObj,sortField;
     List<String> colApiNames;
@@ -47,12 +57,8 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
     private static final int OBJECT_LOADER_ID = 1;
     private AtomicBoolean isRegistered;
 
-    //Dynamic view contect
-    /*View itemView;
-    LinearLayout dynamicView;
-    ViewGroup itemViewGroup;
-    private List<View> allViews = new ArrayList<View>();*/
-    private static int viewsCount = 0;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,19 +76,45 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
         listAdapter = new CustomListAdapter(this, R.layout.list_item);
         loadCompleteReceiver=new LoadCompleteReceiver();
         objectsList.setAdapter(listAdapter);
+
+
+        objectsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+
+                    final JSONObject sObject = listAdapter.getItem(position);
+                    launchDetailActivity(sObject);
+
+            }
+        });
     }
 
-
     @Override
-    protected void onResume() {
+    public void onResume(RestClient client) {
         if (!isRegistered.get()) {
             registerReceiver(loadCompleteReceiver,
                     new IntentFilter(LOAD_COMPLETE_INTENT_ACTION));
         }
         isRegistered.set(true);
         getLoaderManager().initLoader(OBJECT_LOADER_ID, null, this);
-        super.onResume();
+
     }
+
+
+    private void launchDetailActivity(JSONObject sObject) {
+
+            if(sObject!=null) {
+                final Intent detailIntent = new Intent(this, EditActivity.class);
+                detailIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                detailIntent.putExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY,curObj);
+                detailIntent.putExtra(PASS_OBJECT_KEY, sObject.toString());
+                startActivity(detailIntent);
+            }
+
+    }
+
+
+
 
     @Override
     public Loader<List<JSONObject>> onCreateLoader(int i, Bundle bundle) {
@@ -103,7 +135,7 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         if (isRegistered.get()) {
             unregisterReceiver(loadCompleteReceiver);
         }
@@ -113,15 +145,37 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
         super.onPause();
     }
 
-    /*//configure dynamic view
-    private void configureDynamicView()
-    {
-        dynamicView = (LinearLayout) findViewById(R.id.obj_layout);
-        for(String colApi : colApiNames)
-        {
-            this.addTextView();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        final MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_activity, menu);
+        final MenuItem logOut = menu.findItem(R.id.action_logout);
+        logOut.setVisible(false);
+        final MenuItem actionIDb = menu.findItem(R.id.action_inspect_db);
+        actionIDb.setVisible(false);
+        final MenuItem addItem = menu.findItem(R.id.action_switch_user);
+        addItem.setVisible(false);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            /*case R.id.action_search:
+                logoutConfirmationDialog.show(getFragmentManager(), "LogoutDialog");
+                return true;
+            case R.id.action_refresh:
+                launchAccountSwitcherActivity();
+                return true;
+            case R.id.act:
+                launchSmartStoreInspectorActivity();
+                return true;*/
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
-    }*/
+    }
 
 
 
@@ -141,6 +195,7 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
             super(context, listItemLayoutId);
             this.listItemLayoutId = listItemLayoutId;
             generateIds();
+
 
         }
 
@@ -176,16 +231,22 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
                 try{
                     final JSONObject sObject = sObjects.get(position);
                     if (sObject != null) {
-                        final TextView objName = (TextView) convertView.findViewById(R.id.obj_name);
-                        objName.setText(sObject.getString(sortField));//initially Id here.
+                        //final TextView objName = (TextView) convertView.findViewById(R.id.obj_name);
+                        //objName.setText(sObject.getString(sortField));//initially Id here.
+                        final TextView objImage = (TextView) convertView.findViewById(R.id.obj_image);
                         for(String colApi : colApiNames)
                         {
                             TextView view=(TextView) convertView.findViewById(idMap.get(colApi));
                             view.setText(colApi+" : "+sObject.getString(colApi));
-                            /*((TextView)convertView.findViewById(idMap.get(colApi))).
-                                    setText(((TextView)convertView.findViewById(idMap.get(colApi))).getText()+" : "+sObject.getString(colApi));*/
                         }
-
+                        final ImageView syncImage = (ImageView) convertView.findViewById(R.id.sync_status_view);
+                        if (syncImage != null && (sObject.optBoolean(SyncManager.LOCALLY_UPDATED) ||
+                                sObject.optBoolean(SyncManager.LOCALLY_CREATED) ||
+                                sObject.optBoolean(SyncManager.LOCALLY_DELETED))) {
+                            syncImage.setImageResource(R.drawable.sync_local);
+                        } else {
+                            syncImage.setImageResource(R.drawable.sync_success);
+                        }
 
 
 
@@ -207,8 +268,8 @@ public class ActivityDetail extends Activity implements LoaderManager.LoaderCall
             ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT );
             textView.setLayoutParams(lp);
             textView.setId(idMap.get(text));
-            textView.setText(text);
-            //textView.setTextColor(getColor(R.color.black));
+            //textView.setText(text);
+            textView.setTextColor(Color.parseColor("#000000"));
             //allViews.add(textView);
             viewGroup.addView(textView);
 

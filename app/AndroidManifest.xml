@@ -19,7 +19,6 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="com.application.objectsync.C2D_MESSAGE" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -41,7 +40,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ActivityDetail"
+        <activity
+            android:name=".activities.ActivityDetail"
+            android:theme="@style/MyCustom.ActionBarTheme" />
+        <activity android:name=".activities.EditActivity"
             android:theme="@style/MyCustom.ActionBarTheme"></activity>
     </application>
 
