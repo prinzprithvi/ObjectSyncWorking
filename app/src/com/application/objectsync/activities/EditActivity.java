@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,10 +16,15 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.application.objectsync.R;
 import com.application.objectsync.rest_service.ConstantsSync;
 import com.salesforce.androidsdk.rest.RestClient;
+import com.salesforce.androidsdk.smartstore.store.SmartStore;
+import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
+import com.salesforce.androidsdk.smartsync.manager.SyncManager;
+import com.salesforce.androidsdk.smartsync.util.Constants;
 import com.salesforce.androidsdk.ui.SalesforceActivity;
 
 import org.json.JSONException;
@@ -35,13 +42,14 @@ public class EditActivity extends SalesforceActivity {
     SharedPreferences settings;
     List<String> colApiNames;
     String curObj;
-
-
+    private static final String TAG="EditActivity";
+    //private static final String ID="Id";
     //dynamic component variables
     LinearLayout rootLinearLayout;
     private Map<String,Integer> allViewIds=new HashMap<String,Integer>();
     private static final String TXT_VIEW_ID_APPEND="txt";
     private static final String EDT_VIEW_ID_APPEND="edt";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +62,9 @@ public class EditActivity extends SalesforceActivity {
         final Intent launchIntent = getIntent();
         if (launchIntent != null) {
             try{
-                detailObj = new JSONObject(getIntent().getStringExtra(ActivityDetail.PASS_OBJECT_KEY));
-                curObj=getIntent().getStringExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY);
+                if(!launchIntent.getStringExtra(ActivityDetail.PASS_OBJECT_KEY).equals(""))
+                    detailObj = new JSONObject(launchIntent.getStringExtra(ActivityDetail.PASS_OBJECT_KEY));
+                curObj=launchIntent.getStringExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY);
                 colApiNames= Arrays.asList(settings.getString(curObj,"").split(","));
             }
             catch (JSONException e)
@@ -63,6 +72,7 @@ public class EditActivity extends SalesforceActivity {
                 e.printStackTrace();
             }
         }
+
         configScreen();
 
     }
@@ -99,7 +109,7 @@ public class EditActivity extends SalesforceActivity {
                 //overridePendingTransition(R.anim.slide_in_from_left, R.anim.slide_out_to_right);
                 return true;
             case R.id.action_refresh:
-                //save();
+                save();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -114,7 +124,10 @@ public class EditActivity extends SalesforceActivity {
         {
             addTextView(title);
             try{
-                addEditText(detailObj.getString(title));
+                if(detailObj!=null)
+                    addEditText(title,detailObj.getString(title));
+                else
+                    addEditText(title,"");
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -136,17 +149,71 @@ public class EditActivity extends SalesforceActivity {
         textView.setTextColor(Color.parseColor("#000000"));
         rootLinearLayout.addView(textView);
     }
-    private void addEditText(String text)
+    private void addEditText(String api,String text)
     {
-        allViewIds.put(text+EDT_VIEW_ID_APPEND,View.generateViewId());
+        allViewIds.put(api+EDT_VIEW_ID_APPEND,View.generateViewId());
         EditText editText  = new EditText(EditActivity.this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT );
         lp.weight=1;
         editText.setLayoutParams(lp);
-        editText.setId(allViewIds.get(text+EDT_VIEW_ID_APPEND));
+        editText.setId(allViewIds.get(api+EDT_VIEW_ID_APPEND));
         editText.setText(text);
         editText.setTextColor(Color.parseColor("#000000"));
         rootLinearLayout.addView(editText);
 
+    }
+
+
+    //save to localDB
+    private void save() {
+
+        for(String api : colApiNames)
+        {
+            final String apiText = ((EditText) findViewById(allViewIds.get(api+EDT_VIEW_ID_APPEND))).getText().toString();
+            if (TextUtils.isEmpty(apiText)) {
+                Toast.makeText(this, "First and last name cannot be empty!", Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+
+        final SmartStore smartStore = SmartSyncSDKManager.getInstance().getSmartStore();
+        JSONObject object;
+        try {
+            boolean isCreate;
+            if(detailObj!=null)
+                isCreate = TextUtils.isEmpty(detailObj.getString(Constants.ID));
+            else
+                isCreate=true;
+            if (!isCreate) {
+                object = smartStore.retrieve(curObj,
+                        smartStore.lookupSoupEntryId(curObj,
+                                Constants.ID, detailObj.getString(Constants.ID))).getJSONObject(0);
+            } else {
+                object = new JSONObject();
+                object.put(Constants.ID, "local_" + System.currentTimeMillis()
+                        + Constants.EMPTY_STRING);
+                final JSONObject attributes = new JSONObject();
+                attributes.put(Constants.TYPE.toLowerCase(), curObj);
+                object.put(Constants.ATTRIBUTES, attributes);
+            }
+            object.put(SyncManager.LOCAL, true);
+            object.put(SyncManager.LOCALLY_UPDATED, !isCreate);
+            object.put(SyncManager.LOCALLY_CREATED, isCreate);
+            object.put(SyncManager.LOCALLY_DELETED, false);
+            for(String api: colApiNames)
+            {
+                object.put(api,((EditText) findViewById(allViewIds.get(api+EDT_VIEW_ID_APPEND))).getText().toString());
+            }
+
+            if (isCreate) {
+                smartStore.create(curObj, object);
+            } else {
+                smartStore.upsert(curObj, object);
+            }
+            Toast.makeText(this, "Save successful!", Toast.LENGTH_LONG).show();
+            finish();
+        } catch (JSONException e) {
+            Log.e(TAG, "JSONException occurred while parsing", e);
+        }
     }
 }

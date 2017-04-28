@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.application.objectsync.R;
 import com.application.objectsync.rest_service.ConstantsSync;
@@ -103,13 +104,18 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
 
     private void launchDetailActivity(JSONObject sObject) {
 
-            if(sObject!=null) {
-                final Intent detailIntent = new Intent(this, EditActivity.class);
-                detailIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                detailIntent.putExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY,curObj);
-                detailIntent.putExtra(PASS_OBJECT_KEY, sObject.toString());
-                startActivity(detailIntent);
-            }
+        Intent detailIntent = new Intent(this, EditActivity.class);
+        detailIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        detailIntent.putExtra(ConstantsSync.PASS_DETAIL_INTENT_KEY,curObj);
+        if(sObject!=null) {
+            detailIntent.putExtra(PASS_OBJECT_KEY, sObject.toString());
+            startActivity(detailIntent);
+        }
+        else
+        {
+            detailIntent.putExtra(PASS_OBJECT_KEY, "");
+            startActivity(detailIntent);
+        }
 
     }
 
@@ -119,7 +125,7 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
     @Override
     public Loader<List<JSONObject>> onCreateLoader(int i, Bundle bundle) {
         genLoader = new GenericLoader(this, curObj,sortField);
-        genLoader.syncDown(curObj,sortField,this);
+        genLoader.syncDown(curObj,this);
         return genLoader;
     }
 
@@ -162,13 +168,13 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            /*case R.id.action_search:
-                logoutConfirmationDialog.show(getFragmentManager(), "LogoutDialog");
+            case R.id.action_add:
+                launchDetailActivity(null);
                 return true;
-            case R.id.action_refresh:
-                launchAccountSwitcherActivity();
+           case R.id.action_refresh:
+                syncUpRecords();
                 return true;
-            case R.id.act:
+             /*case R.id.act:
                 launchSmartStoreInspectorActivity();
                 return true;*/
 
@@ -177,7 +183,10 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
         }
     }
 
-
+    private void syncUpRecords() {
+        genLoader.syncUp(curObj,colApiNames,this);
+        Toast.makeText(this, "Sync up complete!", Toast.LENGTH_LONG).show();
+    }
 
 
     private class CustomListAdapter extends ArrayAdapter<JSONObject> {

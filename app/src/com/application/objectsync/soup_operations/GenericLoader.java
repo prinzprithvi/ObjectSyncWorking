@@ -21,12 +21,14 @@ import com.salesforce.androidsdk.smartsync.util.SoqlSyncDownTarget;
 import com.salesforce.androidsdk.smartsync.util.SyncDownTarget;
 import com.salesforce.androidsdk.smartsync.util.SyncOptions;
 import com.salesforce.androidsdk.smartsync.util.SyncState;
+import com.salesforce.androidsdk.smartsync.util.SyncUpTarget;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +58,7 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
 
 
 
-    public synchronized void syncDown(String soup, String sortField, Activity context) {
+    public synchronized void syncDown(String soup/*, String sortField*/, Activity context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
             //Uncomment and add loop to sync all soups at once roadmap
         //Map<String, ?> allEntries = settings.getAll();
@@ -80,7 +82,7 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
                 if (syncId == -1) {
                     final SyncOptions options = SyncOptions.optionsForSyncDown(SyncState.MergeMode.LEAVE_IF_CHANGED);
                     final String soqlQuery = SOQLBuilder.getInstanceWithFields(settings.getString(soup,"").split(","))//From preference now
-                            .from(soupToLoad).limit(100).build(); //Limit hardcoded but can change.
+                            .from(soupToLoad).limit(1000).build(); //Limit hardcoded but can change.
                     final SyncDownTarget target = new SoqlSyncDownTarget(soqlQuery);
                     final SyncState sync = syncMgr.syncDown(target, options,
                             soup, callback); //entry.getKey() getKey returns soup name in case of all soups
@@ -94,6 +96,29 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
                 Log.e(TAG, "SmartSyncException occurred while attempting to sync down", e);
             }
         //}
+    }
+
+
+    public synchronized void syncUp(final String soup, List<String> fieldsToSync, final Activity context) {
+        final SyncUpTarget target = new SyncUpTarget();
+        final SyncOptions options = SyncOptions.optionsForSyncUp(fieldsToSync,
+                SyncState.MergeMode.LEAVE_IF_CHANGED);
+
+        try {
+            syncMgr.syncUp(target, options, soup, new SyncManager.SyncUpdateCallback() {
+
+                @Override
+                public void onUpdate(SyncState sync) {
+                    if (SyncState.Status.DONE.equals(sync.getStatus())) {
+                        syncDown(soup,context);
+                    }
+                }
+            });
+        } catch (JSONException e) {
+            Log.e(TAG, "JSONException occurred while parsing", e);
+        } catch (SyncManager.SmartSyncException e) {
+            Log.e(TAG, "SmartSyncException occurred while attempting to sync up", e);
+        }
     }
 
 

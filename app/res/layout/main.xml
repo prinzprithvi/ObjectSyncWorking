@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:cube_ptr="http://schemas.android.com/apk/res-auto"
 	android:orientation="vertical" android:layout_width="match_parent"
 	android:layout_height="match_parent" android:background="@color/white"
 	android:id="@+id/root"
 	>
 
 	<!--<include layout="@layout/header" />-->
+	<android.support.v4.widget.SwipeRefreshLayout
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/swipeContainer"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
 
 	<!--<LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
 	    android:layout_height="wrap_content">-->
 		<ListView android:id="@+id/contacts_list" android:layout_width="match_parent"
 			android:layout_height="match_parent" />
 	<!--</LinearLayout>-->
-	
+	</android.support.v4.widget.SwipeRefreshLayout>
+
 
 </LinearLayout>
