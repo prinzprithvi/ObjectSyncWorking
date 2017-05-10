@@ -30,6 +30,7 @@ import com.application.objectsync.R;
 import com.application.objectsync.rest_service.ConstantsSync;
 import com.application.objectsync.soup_operations.GenericLoader;
 import com.salesforce.androidsdk.rest.RestClient;
+import com.salesforce.androidsdk.smartstore.store.SmartStore;
 import com.salesforce.androidsdk.smartsync.manager.SyncManager;
 import com.salesforce.androidsdk.ui.SalesforceActivity;
 
@@ -98,9 +99,10 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
         }
         isRegistered.set(true);
         getLoaderManager().initLoader(OBJECT_LOADER_ID, null, this);
+        refreshList();
+
 
     }
-
 
     private void launchDetailActivity(JSONObject sObject) {
 
@@ -125,7 +127,8 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
     @Override
     public Loader<List<JSONObject>> onCreateLoader(int i, Bundle bundle) {
         genLoader = new GenericLoader(this, curObj,sortField);
-        genLoader.syncDown(curObj,this);
+        //genLoader.syncDown(curObj,this);
+
         return genLoader;
     }
 

@@ -27,7 +27,11 @@
 package com.application.objectsync;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -39,6 +43,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.application.objectsync.activities.ActivityDetail;
+import com.application.objectsync.recievers.ConnectivityChangeReceiver;
 import com.application.objectsync.rest_service.ConstantsSync;
 import com.application.objectsync.rest_service.IResposeObject;
 import com.application.objectsync.rest_service.ServerUtils;
@@ -57,7 +62,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
 
 
 /**
@@ -77,16 +82,19 @@ public class MainActivity extends SalesforceActivity {
     private SwipeRefreshLayout swipeContainer;
 
     private static boolean FIRST_RUN=true;
-
-
+	SharedPreferences settings;
+	Map<String, ?> allEntries;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		addListener();
 		// Hide everything until we are logged in
 		findViewById(R.id.root).setVisibility(View.INVISIBLE);
+		settings = PreferenceManager.getDefaultSharedPreferences(this);
 
-        makeReqObj=new ServerUtils();
+
+		makeReqObj=new ServerUtils();
 		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
 		objects=(ListView) findViewById(R.id.contacts_list);
 		objects.setAdapter(listAdapter);
@@ -131,7 +139,15 @@ public class MainActivity extends SalesforceActivity {
 			soupOperations=new SoupOperations();
 			this.client = client;
 			findViewById(R.id.root).setVisibility(View.VISIBLE);
-			callCustomApi();
+			allEntries = settings.getAll();
+			if(allEntries!=null)
+			{
+				allSoups = new ArrayList<String>();
+				allSoups.addAll(allEntries.keySet());
+				listAdapter.addAll(allSoups);
+			}
+			else
+				callCustomApi();
 			FIRST_RUN=false;
 
 		}
@@ -272,6 +288,12 @@ public boolean onCreateOptionsMenu(Menu menu) {
 
 		}
 	};
-
+	private void addListener()
+	{
+		registerReceiver(
+				new ConnectivityChangeReceiver(),
+				new IntentFilter(
+						ConnectivityManager.CONNECTIVITY_ACTION));
+	}
 
 }

@@ -50,7 +50,7 @@ public class SoupOperations {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(soupName,fields);
-        editor.commit();
+        editor.apply();
     }
 
 

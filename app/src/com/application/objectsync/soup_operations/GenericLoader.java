@@ -82,7 +82,7 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
                 if (syncId == -1) {
                     final SyncOptions options = SyncOptions.optionsForSyncDown(SyncState.MergeMode.LEAVE_IF_CHANGED);
                     final String soqlQuery = SOQLBuilder.getInstanceWithFields(settings.getString(soup,"").split(","))//From preference now
-                            .from(soupToLoad).limit(1000).build(); //Limit hardcoded but can change.
+                            .from(soupToLoad).limit(LIMIT).build(); //Limit hardcoded but can change.
                     final SyncDownTarget target = new SoqlSyncDownTarget(soqlQuery);
                     final SyncState sync = syncMgr.syncDown(target, options,
                             soup, callback); //entry.getKey() getKey returns soup name in case of all soups
