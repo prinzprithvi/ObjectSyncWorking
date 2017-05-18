@@ -31,6 +31,7 @@ import com.application.objectsync.rest_service.ConstantsSync;
 import com.application.objectsync.soup_operations.GenericLoader;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.salesforce.androidsdk.smartstore.store.SmartStore;
+import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
 import com.salesforce.androidsdk.smartsync.manager.SyncManager;
 import com.salesforce.androidsdk.ui.SalesforceActivity;
 
@@ -58,7 +59,7 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
     public static final String LOAD_COMPLETE_INTENT_ACTION = "com.salesforce.samples.smartsyncexplorer.loaders.LIST_LOAD_COMPLETE";
     private static final int OBJECT_LOADER_ID = 1;
     private AtomicBoolean isRegistered;
-
+    //private SmartStore smartStore;
 
 
 
@@ -78,7 +79,7 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
         listAdapter = new CustomListAdapter(this, R.layout.list_item);
         loadCompleteReceiver=new LoadCompleteReceiver();
         objectsList.setAdapter(listAdapter);
-
+        //smartStore = SmartSyncSDKManager.getInstance().getSmartStore();
 
         objectsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -99,7 +100,11 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
         }
         isRegistered.set(true);
         getLoaderManager().initLoader(OBJECT_LOADER_ID, null, this);
-        refreshList();
+       /* if (!smartStore.hasSoup(curObj)) {
+            genLoader.syncDown(curObj,this);
+        } else {*/
+            refreshList();
+        //}
 
 
     }
@@ -127,7 +132,7 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
     @Override
     public Loader<List<JSONObject>> onCreateLoader(int i, Bundle bundle) {
         genLoader = new GenericLoader(this, curObj,sortField);
-        //genLoader.syncDown(curObj,this);
+        genLoader.syncDown(curObj,this);
 
         return genLoader;
     }
@@ -257,7 +262,9 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
                                 sObject.optBoolean(SyncManager.LOCALLY_DELETED))) {
                             syncImage.setImageResource(R.drawable.sync_local);
                         } else {
-                            syncImage.setImageResource(R.drawable.sync_success);
+                            if (syncImage != null) {
+                                syncImage.setImageResource(R.drawable.sync_success);
+                            }
                         }
 
 

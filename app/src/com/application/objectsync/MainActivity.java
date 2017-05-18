@@ -84,11 +84,13 @@ public class MainActivity extends SalesforceActivity {
     private static boolean FIRST_RUN=true;
 	SharedPreferences settings;
 	Map<String, ?> allEntries;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		addListener();
+		//Un comment to add listener programatically.
+		//addListener();
 		// Hide everything until we are logged in
 		findViewById(R.id.root).setVisibility(View.INVISIBLE);
 		settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -117,10 +119,10 @@ public class MainActivity extends SalesforceActivity {
 
             }
         });
-        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+        swipeContainer.setColorSchemeResources(android.R.color.holo_red_light,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
+                android.R.color.holo_blue_bright);
 
 
     }
@@ -288,12 +290,15 @@ public boolean onCreateOptionsMenu(Menu menu) {
 
 		}
 	};
-	private void addListener()
+
+
+	//add in manifest if ur really wanna enable broadcast reciever!.
+	/*private void addListener()
 	{
 		registerReceiver(
 				new ConnectivityChangeReceiver(),
 				new IntentFilter(
 						ConnectivityManager.CONNECTIVITY_ACTION));
-	}
+	}*/
 
 }
