@@ -266,7 +266,13 @@ public boolean onCreateOptionsMenu(Menu menu) {
 				try{
 					//[{"objectNames":"Contact","fieldValues":"LastName,Account,MobilePhone"}]
 					allSoups=new ArrayList<String>();
-					JSONArray configArray = resp.getJSONArray("settings");
+					JSONObject configMainObj = resp.getJSONObject("settings");
+					JSONArray configArray=configMainObj.getJSONArray("mobResWrap");
+					/*SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+					SharedPreferences.Editor editor = settings.edit();
+					editor.putString(ConstantsSync.FROMDATE_KEY,configMainObj.getString("fromDate"));
+					editor.putString(ConstantsSync.TODATE_KEY,configMainObj.getString("toDate"));
+					editor.apply();*/
 					for(int i=0;i<configArray.length();i++)
 					{
 						JSONObject soupObject=configArray.getJSONObject(i);
