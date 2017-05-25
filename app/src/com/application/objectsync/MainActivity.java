@@ -268,11 +268,11 @@ public boolean onCreateOptionsMenu(Menu menu) {
 					allSoups=new ArrayList<String>();
 					JSONObject configMainObj = resp.getJSONObject("settings");
 					JSONArray configArray=configMainObj.getJSONArray("mobResWrap");
-					/*SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+					SharedPreferences settings = getSharedPreferences(ConstantsSync.SHARED_PREFERENCE_DATE_FILE_NAME,MODE_PRIVATE);
 					SharedPreferences.Editor editor = settings.edit();
 					editor.putString(ConstantsSync.FROMDATE_KEY,configMainObj.getString("fromDate"));
 					editor.putString(ConstantsSync.TODATE_KEY,configMainObj.getString("toDate"));
-					editor.apply();*/
+					editor.apply();
 					for(int i=0;i<configArray.length();i++)
 					{
 						JSONObject soupObject=configArray.getJSONObject(i);
