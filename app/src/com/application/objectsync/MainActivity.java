@@ -142,7 +142,7 @@ public class MainActivity extends SalesforceActivity {
 			this.client = client;
 			findViewById(R.id.root).setVisibility(View.VISIBLE);
 			allEntries = settings.getAll();
-			if(allEntries!=null)
+			if(allEntries.size()!=0)
 			{
 				allSoups = new ArrayList<String>();
 				allSoups.addAll(allEntries.keySet());

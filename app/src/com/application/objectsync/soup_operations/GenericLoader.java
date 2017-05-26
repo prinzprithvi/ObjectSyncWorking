@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.application.objectsync.rest_service.ServerUtils.LOAD_COMPLETE_INTENT_ACTION;
 
 /**
@@ -61,6 +62,7 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
 
     public synchronized void syncDown(String soup/*, String sortField*/, Activity context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences dateConfigFile = context.getSharedPreferences(ConstantsSync.SHARED_PREFERENCE_DATE_FILE_NAME,MODE_PRIVATE);
             //Uncomment and add loop to sync all soups at once roadmap
         //Map<String, ?> allEntries = settings.getAll();
         //for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -83,7 +85,7 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
                 if (syncId == -1) {
                     final SyncOptions options = SyncOptions.optionsForSyncDown(SyncState.MergeMode.LEAVE_IF_CHANGED);
                     final String soqlQuery = SOQLBuilder.getInstanceWithFields(settings.getString(soup,"").split(","))//From preference now
-                            .from(soupToLoad)/*.where(settings.getString(ConstantsSync.FROMDATE_KEY,"")>)*/.limit(LIMIT).build(); //Limit hardcoded but can change.
+                            .from(soupToLoad).where("LastModifiedDate > = "+dateConfigFile.getString(ConstantsSync.FROMDATE_KEY,"")+" AND LastModifiedDate < = "+dateConfigFile.getString(ConstantsSync.TODATE_KEY,"")).limit(LIMIT).build(); //Limit hardcoded but can change.
                     final SyncDownTarget target = new SoqlSyncDownTarget(soqlQuery);
                     final SyncState sync = syncMgr.syncDown(target, options,
                             soup, callback); //entry.getKey() getKey returns soup name in case of all soups
