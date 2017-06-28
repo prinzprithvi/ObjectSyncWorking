@@ -28,6 +28,7 @@ package com.application.objectsync;
 
 import android.app.Application;
 
+import com.application.objectsync.activities.SplashActivity;
 import com.salesforce.androidsdk.app.SalesforceSDKManager;
 import com.salesforce.androidsdk.app.SalesforceSDKManager.KeyInterface;
 import com.salesforce.androidsdk.analytics.security.Encryptor;
@@ -41,7 +42,7 @@ public class MainApplication extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		SmartSyncSDKManager.initNative(getApplicationContext(), new NativeKeyImpl(), MainActivity.class);
+		SmartSyncSDKManager.initNative(getApplicationContext(), new NativeKeyImpl(), SplashActivity.class);
 
 		/*
 		 * Un-comment the line below to enable push notifications in this app.

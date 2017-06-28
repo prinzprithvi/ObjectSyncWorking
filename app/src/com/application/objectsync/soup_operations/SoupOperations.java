@@ -12,6 +12,7 @@ import com.salesforce.androidsdk.smartstore.store.SmartSqlHelper;
 import com.salesforce.androidsdk.smartstore.store.SmartStore;
 import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
 import com.salesforce.androidsdk.smartsync.manager.SyncManager;
+import com.salesforce.androidsdk.smartsync.util.Constants;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +37,7 @@ public class SoupOperations {
         indexSpecList.add(new IndexSpec(SyncManager.LOCALLY_UPDATED, SmartStore.Type.string));
         indexSpecList.add(new IndexSpec(SyncManager.LOCALLY_DELETED, SmartStore.Type.string));
         indexSpecList.add(new IndexSpec(SyncManager.LOCAL, SmartStore.Type.string));
+        indexSpecList.add(new IndexSpec(Constants.LAST_MODIFIED_DATE, SmartStore.Type.string));
         for(String field : fields)
         {
             indexSpecList.add(new IndexSpec(field, SmartStore.Type.string));

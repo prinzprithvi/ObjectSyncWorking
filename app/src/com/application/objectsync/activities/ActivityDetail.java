@@ -254,7 +254,13 @@ public class ActivityDetail extends SalesforceActivity implements LoaderManager.
                         for(String colApi : colApiNames)
                         {
                             TextView view=(TextView) convertView.findViewById(idMap.get(colApi));
-                            view.setText(colApi+" : "+sObject.getString(colApi));
+                            if(!sObject.isNull(colApi)){
+                                view.setText(colApi+" : "+sObject.getString(colApi));
+                            }
+                            else
+                            {
+                                view.setText(colApi+" : -");
+                            }
                         }
                         final ImageView syncImage = (ImageView) convertView.findViewById(R.id.sync_status_view);
                         if (syncImage != null && (sObject.optBoolean(SyncManager.LOCALLY_UPDATED) ||

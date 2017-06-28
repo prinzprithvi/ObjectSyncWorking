@@ -3,7 +3,8 @@ apply plugin: 'com.android.application'
 dependencies {
     compile project(':libs:SmartSync') // From node_modules
     //compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.android.support:appcompat-v7:25.0.1'
 }
 
 android {

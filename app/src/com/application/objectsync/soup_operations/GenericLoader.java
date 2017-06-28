@@ -84,7 +84,9 @@ public class GenericLoader extends AsyncTaskLoader<List<JSONObject>> {
             try {
                 if (syncId == -1) {
                     final SyncOptions options = SyncOptions.optionsForSyncDown(SyncState.MergeMode.LEAVE_IF_CHANGED);
-                    final String soqlQuery = SOQLBuilder.getInstanceWithFields(settings.getString(soup,"").split(","))//From preference now
+                    String fieldsString = settings.getString(soup,"")+","+Constants.LAST_MODIFIED_DATE;
+
+                    final String soqlQuery = SOQLBuilder.getInstanceWithFields(fieldsString.split(","))//From preference now
                             .from(soupToLoad).where("LastModifiedDate > = "+dateConfigFile.getString(ConstantsSync.FROMDATE_KEY,"")+" AND LastModifiedDate < = "+dateConfigFile.getString(ConstantsSync.TODATE_KEY,"")).limit(LIMIT).build(); //Limit hardcoded but can change.
                     final SyncDownTarget target = new SoqlSyncDownTarget(soqlQuery);
                     final SyncState sync = syncMgr.syncDown(target, options,

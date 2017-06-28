@@ -120,19 +120,36 @@ public class EditActivity extends SalesforceActivity {
     private void configScreen()
     {
         rootLinearLayout=(LinearLayout) findViewById(R.id.mainLayout);
-        for(String title : colApiNames)
+        if(detailObj!=null)
         {
-            addTextView(title);
-            try{
-                if(detailObj!=null)
-                    addEditText(title,detailObj.getString(title));
-                else
-                    addEditText(title,"");
-            }
-            catch (Exception e){
-                e.printStackTrace();
+            for(String title : colApiNames)
+            {
+                addTextView(title);
+                try{
+                    if(!detailObj.isNull(title))
+                        addEditText(title,detailObj.getString(title));
+                    else
+                        addEditText(title,"");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
+        else
+        {
+            for(String title : colApiNames)
+            {
+                addTextView(title);
+                try{
+                    addEditText(title,"");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     private void addTextView(String text)
@@ -171,7 +188,7 @@ public class EditActivity extends SalesforceActivity {
         {
             final String apiText = ((EditText) findViewById(allViewIds.get(api+EDT_VIEW_ID_APPEND))).getText().toString();
             if (TextUtils.isEmpty(apiText)) {
-                Toast.makeText(this, "First and last name cannot be empty!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Fields cannot be empty!", Toast.LENGTH_LONG).show();
                 return;
             }
         }

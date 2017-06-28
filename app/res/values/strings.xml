@@ -18,4 +18,5 @@
     <string name="action_search">Search</string>
     <string name="action_refresh">Synchronize</string>
     <string name="action_add">Add</string>
+    <string name="splash_screen">DYNAMIC SYNC!</string>
 </resources>
